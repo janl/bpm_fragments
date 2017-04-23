@@ -1,0 +1,281 @@
+swagger: '2.0'
+info:
+  x-ibm-name: CouchDB
+  title: CouchDB
+  description: Interface to CouchDB.
+  version: 1.0.0
+  contact:
+    name: Neil Kolban
+    email: kolban1@kolban.com
+schemes:
+  - https
+host: 5a1afc1d-9bb4-4b5f-897d-417b7cacfe8e-bluemix.cloudant.com
+consumes:
+  - application/json
+produces:
+  - application/json
+securityDefinitions:
+  basic-1:
+    type: basic
+    description: ''
+paths:
+  '/{db}':
+    parameters:
+    - name: db
+      description: Database name.
+      type: string
+      required: true
+      in: path
+    put:
+      summary: Create a new database.
+      description: Create a new database.
+      responses:
+        '200':
+          description: 200 OK
+    get:
+      summary: Retrieve the database information.
+      description: Retrieved the data database information.
+      responses:
+        '200':
+          description: 200 OK
+          schema:
+            type: object
+            properties:
+              committed_update_seq:
+                type: number
+              compact_running:
+                type: boolean
+              db_name:
+                type: string
+              disk_format_version:
+                type: number
+              data_size:
+                type: number
+              disk_size:
+                type: number
+              doc_count:
+                type: number
+              doc_del_count:
+                type: number
+              instance_start_time:
+                type: string
+              purge_seq:
+                type: number
+              update_seq:
+                type: number
+        '404':
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/CloudantError'             
+  '/{db}/{docId}':
+    parameters:
+    - name: db
+      description: Database name.
+      type: string
+      required: true
+      in: path
+    - name: docId
+      description: Document identity.
+      type: string
+      required: true
+      in: path   
+    get:
+      responses:
+        '200':
+          description: 200 OK
+        '404':
+          description: 404 Not Found
+          schema:
+            $ref: '#/definitions/CloudantError'              
+      summary: Retrieve the document.
+      description: Retrieve the document.
+      parameters:
+        - name: rev
+          type: string
+          in: query
+          description: Retrieves document of specified revision.
+    put:
+      parameters:
+      - name: doc
+        schema:
+          type: object
+        in: body
+        required: true
+        description: The document to be saved/updated.
+      responses:
+        '201':
+          description: 201 Created
+          schema:
+            $ref: '#/definitions/CloudantResponse'          
+        '400':
+          description: 400 Bad Request
+        '401':
+          description: 401 Unauthorized
+        '404':
+          description: 404 Not Found
+        '409':
+          description: 409 Conflict
+          schema:
+            $ref: '#/definitions/CloudantError'         
+      summary: Update the document.
+      description: Update the document.
+    delete:
+      parameters:
+        - name: rev
+          description: Actual document’s revision.
+          type: string
+          in: query
+          required: true
+      responses:
+        '200':
+          description: 200 OK
+        '400':
+          description: 400 Bad Request
+          schema:
+            $ref: '#/definitions/CloudantError'            
+        '401':
+          description: 401 Unauthorized
+        '404':
+          description: 404 Not Found
+      description: Delete the document.
+      summary: Delete the document.
+   
+  '/{db}/_all_docs':
+    get:
+      summary: Retrieve all the documents.
+      description: Retrieve all the documents.
+      responses:
+        '200':
+          description: 200 OK
+      parameters:
+        - name: conflicts
+          description:
+            Includes conflicts information in response. Ignored if include_docs isn’t true. Default is false.
+          type: boolean
+          in: query
+        - name: descending
+          description:
+            Return the documents in descending by key order. Default is false.
+          type: boolean
+          in: query          
+        - name: endkey_docid
+          description:
+            Stop returning records when the specified document ID is reached.
+          type: boolean
+          in: query               
+        - name: include_docs
+          description:
+            Include the full content of the documents in the return. Default is false.
+          type: boolean
+          in: query
+        - name: inclusive_end
+          description: Specifies whether the specified end key should be included in the result. Default is true.
+          type: boolean
+          in: query   
+        - name: key
+          description:
+            Return only documents that match the specified key.
+          type: string
+          in: query
+        - name: keys
+          description:
+            Return only documents that match the specified keys.
+          type: string
+          in: query   
+        - name: limit
+          description:
+            Limit the number of the returned documents to the specified number.
+          type: number
+          in: query   
+        - name: skip
+          description:
+            Skip this number of records before starting to return the results. Default is 0
+          type: number
+          in: query    
+        - name: stale
+          description:
+            Allow the results from a stale view to be used, without triggering a rebuild of all views within the encompassing design doc. Supported values- ok and update_after.
+          type: string
+          required: false
+          in: query  
+        - name: start_key
+          description:
+            Return records starting with the specified key. 
+          type: string
+          required: false
+          in: query  
+        - name: startkey_docid
+          description:
+            Return records starting with the specified document ID
+          type: string
+          required: false
+          in: query      
+        - name: update_seq
+          description:
+            Response includes an update_seq value indicating which sequence id of the underlying database the view reflects. Default is false.
+          type: boolean
+          in: query            
+    parameters:
+      - name: db
+        description:
+          Database name.
+        type: string
+        required: true
+        in: path
+        
+  '/{db}/_find':
+    post:
+      summary: Find documents.
+      description: "Find documents within the database using a custom selection mechanism.  See the following documentation for more details:<br>
+        http://docs.couchdb.org/en/2.0.0/api/database/find.html#find-selectors
+        "
+      responses:
+        '200':
+          description: 200 OK
+          schema:
+            type: object
+    parameters:
+      - name: db
+        description: Database name.      
+        type: string
+        required: true
+        in: path
+      - name: selector
+        description: "JSON object describing criteria used to select documents. More information provided in the section on selector syntax.  See:<br>http://docs.couchdb.org/en/2.0.0/api/database/find.html#find-selectors"
+        schema:
+          type: object
+        in: body
+        required: true
+      - name: limit
+        description: Maximum number of results returned. Default is 25.
+        type: integer
+        in: query
+      - name: skip
+        description: Skip the first ‘n’ results, where ‘n’ is the value specified.
+        type: integer
+        in: query
+      - name: sort
+        description: JSON array following sort syntax.
+        type: string
+        in: query
+        
+tags: []
+security:
+  - basic-1: []
+definitions:
+  CloudantResponse:
+    properties:
+      id:
+        type: string  
+      ok:
+        type: boolean    
+      rev:
+        type: string
+    additionalProperties: false  
+  CloudantError:
+    properties:
+      error:
+        type: string  
+      reason:
+        type: string    
+    additionalProperties: false      
